@@ -1,503 +1,1324 @@
-﻿<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Untitled Document</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link type="text/css" href="resources/css/reset.css" rel="Stylesheet" />
-    <link type="text/css" href="resources/css/default.css" rel="Stylesheet" />
-    <!--<link href='https://fonts.googleapis.com/css?family=Nunito:300' rel='stylesheet' type='text/css'>-->
-
-    <script type="text/javascript">
-        if (location.href.toString().indexOf('file://localhost/') == 0) {
-            location.href = location.href.toString().replace('file://localhost/', 'file:///');
-        }
-    </script>
-
-    <script type="text/javascript" src="resources/scripts/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="resources/scripts/player/splitter.js"></script>
-    <script type="text/javascript" src="resources/scripts/axutils.js"></script>
-    <script type="text/javascript" src="resources/scripts/player/axplayer.js"></script>
-    <script type="text/javascript" src="resources/scripts/messagecenter.js"></script>
-    <script type="text/javascript" src="data/document.js"></script>
-    <style type="text/css">
-
-#outerContainer {
-	width:1000px;
-	height:1500px;
-}
-
-.vsplitbar {
-    width: 3px;
-    /*background: #B9B9B9;*/
-    border-right: 1px solid #8f949a;
-}
-
-.vsplitbar:hover, .vsplitbar.active {
-    background: #8f949a;
-}
-
-#rightPanel {
-    background-color: White;
-}
-
-/*#leftPanel {
-    min-width: 120px;
-}*/
-
-.splitterMask {
-   position:absolute;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   overflow: hidden;
-   background-image: url(resources/images/transparent.gif);
-   z-index: 20000;
-}
-
-    </style>
-    <script type="text/javascript" language="JavaScript"><!--
-        var SITEMAP_COLLAPSE_VAR_NAME = 'c';
-        var PLUGIN_VAR_NAME = 'g';
-        var FOOTNOTES_VAR_NAME = 'fn';
-        var ADAPTIVE_VIEW_VAR_NAME = 'view';
-        var lastLeftPanelWidth = 295;
-        var toolBarOnly = true;
-
-        // isolate scope
-        (function() {
-            setUpController();
-            
-            var configuration = $axure.document.configuration;
-            var _settings = {};
-            _settings.projectId = configuration.prototypeId;
-            _settings.isAxshare = configuration.isAxshare;
-            _settings.loadFeedbackPlugin = configuration.loadFeedbackPlugin;
-            var cHash = getHashStringVar(SITEMAP_COLLAPSE_VAR_NAME);
-            _settings.startCollapsed = cHash == "1";
-            if(cHash == "2") closePlayer();
-            var gHash = getHashStringVar(PLUGIN_VAR_NAME);
-            if(gHash == "") gHash = 1;
-            _settings.startPluginGid = gHash;
-
-            $axure.player.settings = _settings;
-
-            $(window).bind('load', function() {
-                if(CHROME_5_LOCAL && !$('body').attr('pluginDetected')) {
-                    window.location = 'resources/chrome/chrome.html';
-                }
-            });
-
-            $(document).ready(function() {
-                $axure.page.bind('load.start', mainFrame_onload);
-                $axure.messageCenter.addMessageListener(messageCenter_message);
-
-                $(document).on('pluginShown', function (event, data) {
-                    setVarInCurrentUrlHash('g', data ? data : '');
-                });
-
-                $(document).on('pluginCreated', function(event, data) {
-                    if($axure.player.settings.startPluginGid == data) {
-                        $axure.player.showPlugin(data);
-                    }
-                });
-
-                if($axure.player.settings.loadFeedbackPlugin) {
-                    if($axure.player.settings.isAxshare) {
-                        $axure.utils.loadJS('/Scripts/plugins/feedback/feedback8.js');
-                    } else {
-                        $axure.utils.loadJS('http://share.axure.com/Scripts/plugins/feedback/feedback8.js');
-                    }
-                }
-
-                if(navigator.userAgent.indexOf("MSIE") >= 0) $('#outerContainer').width('100%');
-                initialize();
-                if($axure.player.settings.startCollapsed) $('#outerContainer').splitter({ sizeLeft: 0 });
-                else $('#outerContainer').splitter({ sizeLeft: lastLeftPanelWidth });
-                $('#leftPanel').width(lastLeftPanelWidth);
-                
-                $(window).resize(function() { resizeContent(); });
-
-                $('#maximizePanelContainer').hide();
-
-                initializeLogo();
-
-                $(window).resize();
-                resizeContent();
-                
-                $axure.player.collapseToBar();
-
-                if($axure.player.settings.startCollapsed) {
-                    collapse();
-                    $('#leftPanel').width(0);
-                }
-
-                if(MOBILE_DEVICE) {
-                    $('#interfaceControlFrameMinimizeContainer').height('45px');
-                    $('#interfaceControlFrameMinimizeContainer a').height('45px');
-                    $('#interfaceControlFrameHeaderContainer').css('margin-top','45px');
-                    $('#interfaceControlFrameCloseContainer a').css('padding','10px 0px');
-                    $('#maximizePanelContainer').height('45px');//.css('top','inherit').css('bottom','0px');
-
-                    $('body').removeClass('hashover');
-
-                    if(IOS) {
-                        $('#rightPanel').css('overflow', 'auto').css('-webkit-overflow-scrolling', 'touch').css('-ms-overflow-x', 'hidden');
-
-                        window.addEventListener("orientationchange", function() {
-                            var viewport = document.querySelector("meta[name=viewport]");
-                            //so iOS doesn't zoom when switching back to portrait
-                            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
-                            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
-                            resizeContent();
-                        }, false);
-
-                        $axure.page.bind('load.start', function() {
-                            resizeContent();
-                        });
-                    }
-                }
-
-            });
-
-            function initialize() {
-                var legacyQString = getQueryString("Page");
-                if (legacyQString.length > 0) {
-                    location.href = location.href.substring(0, location.href.indexOf("?")) + "#p=" + legacyQString;
-                    return;
-                }
-
-                var mainFrame = document.getElementById("mainFrame");
-                mainFrame.contentWindow.location.href = getInitialUrl();
-            }
-
-            function initializeLogo() {
-                if($axure.document.configuration.logoImagePath) {
-                    var image = new Image();
-                    image.onload = function() {
-                        $('#logoImage').css('max-width', this.width + 'px');
-                        $axure.player.resizeContent();
-                    };
-                    image.src = $axure.document.configuration.logoImagePath;
-                
-                    $('#interfaceControlFrameLogoImageContainer').html('<img id="logoImage" src="" />');
-                    $('#logoImage').attr('src', $axure.document.configuration.logoImagePath).load(function() { resizeContent(); });
-                } else $('#interfaceControlFrameLogoImageContainer').hide();
-
-                if ($axure.document.configuration.logoImageCaption) {
-                    $('#interfaceControlFrameLogoCaptionContainer').html($axure.document.configuration.logoImageCaption);
-                } else $('#interfaceControlFrameLogoCaptionContainer').hide();
-
-                if(!$('#interfaceControlFrameLogoImageContainer').is(':visible') && !$('#interfaceControlFrameLogoCaptionContainer').is(':visible')) {
-                    $('#interfaceControlFrameLogoContainer').hide();
-                }
-            }
-
-            var resizeContent = $axure.player.resizeContent = function() {
-                var newHeight = $(window).height();
-                var newWidth = $(window).width();
-
-                var controlContainerHeight = newHeight;// - 30;
-                if($('#interfaceControlFrameLogoContainer').is(':visible')) controlContainerHeight -= $('#interfaceControlFrameLogoContainer').outerHeight();// + 16;
-
-                $('#outerContainer').height(newHeight).width(newWidth);
-                $('.vsplitbar').height(newHeight);
-                $('#leftPanel').height(newHeight);
-                $('#interfaceControlFrame').height(newHeight);
-                $('#interfaceControlFrameContainer').height(newHeight);
-                $('#interfaceControlFrameHostContainer').height(controlContainerHeight);
-
-                $('#rightPanel').height(newHeight);
-                $('#mainFrame').height(newHeight);
-
-                if($('#leftPanel').is(':visible')) $('#rightPanel').width($(window).width() - $('#leftPanel').width() - 1);// $('.vsplitbar').width());
-                else $('#rightPanel').width($(window).width());
-
-                $(document).trigger('ContainerHeightChange',[controlContainerHeight]);
-
-                if(MOBILE_DEVICE) {
-                    if(!(getHashStringVar(ADAPTIVE_VIEW_VAR_NAME).length > 0)) $axure.messageCenter.postMessage('setAdaptiveViewForSize', {'width':newWidth, 'height':$('#rightPanel').height()});
-                }
-            }
-
-            var collapseToBar = $axure.player.collapseToBar = function() {
-                lastLeftPanelWidth = $('#leftPanel').width();
-                $('#leftPanel').width('55px');
-                $('.vsplitbar').hide();
-                $('#rightPanel').width($(window).width() - $('#leftPanel').width());
-                $(window).resize();
-                $('#outerContainer').trigger('resize');
-                toolBarOnly = true;
-            }
-
-            var expandFromBar = $axure.player.expandFromBar = function() {
-                if($('.vsplitbar').is(':visible')) return;
-
-                $('#leftPanel').width(lastLeftPanelWidth);
-                $('.vsplitbar').show();
-                $('#rightPanel').width($(window).width() - $('#leftPanel').width() - 1);// $('.vsplitbar').width());
-                $(window).resize();
-                $('#outerContainer').trigger('resize');
-                toolBarOnly = false;
-            }
-
-        })();
-
-        function messageCenter_message(message, data) {
-            if(message == 'expandFrame') expand();
-            else if(message == 'getCollapseFrameOnLoad' && $axure.player.settings.startCollapsed && !MOBILE_DEVICE) $axure.messageCenter.postMessage('collapseFrameOnLoad');
-        }
-
-        
-        function getInitialUrl() {
-            var pageName = getHashStringVar("p");
-            if(pageName.length > 0) return pageName + ".html";
-            else {
-                var url = getFirstPageUrl($axure.document.sitemap.rootNodes);
-                return (url ? url : "about:blank");
-            }
-        }
-
-        function getFirstPageUrl(nodes) {
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-                if (node.url) return node.url;
-                else {
-                    var hasChildren = (node.children && node.children.length > 0);
-                    if (hasChildren) {
-                        var url = getFirstPageUrl(node.children);
-                        if (url) return url;
-                    }
-                }
-            }
-            return null;
-        }
-
-        function closePlayer() {
-            if($axure.page.location) window.location.href = $axure.page.location;
-            else {
-                var pageFile = getInitialUrl();
-                var currentLocation = window.location.toString();
-                window.location.href = currentLocation.substr(0, currentLocation.lastIndexOf("/") + 1) + pageFile;
-            }
-        }
-
-        function replaceHash(newHash) {
-            var currentLocWithoutHash = window.location.toString().split('#')[0];
-
-            //We use replace so that every hash change doesn't get appended to the history stack.
-            //We use replaceState in browsers that support it, else replace the location
-            if(typeof window.history.replaceState != 'undefined') {
-                try {
-                    //Chrome 45 (Version 45.0.2454.85 m) started throwing an error here when generated locally (this only happens with sitemap open) which broke all interactions.
-                    //try catch breaks the url adjusting nicely when the sitemap is open, but all interactions and forward and back buttons work.
-                    //Uncaught SecurityError: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///C:/Users/Ian/Documents/Axure/HTML/Untitled/start.html#p=home' cannot be created in a document with origin 'null'.
-                    window.history.replaceState(null, null, currentLocWithoutHash + newHash);
-                } catch(ex) {}
-            } else {
-                window.location.replace(currentLocWithoutHash + newHash);
-            }
-        }
-
-        function collapse() {
-            setVarInCurrentUrlHash('c', 1);
-            if(!toolBarOnly) lastLeftPanelWidth = $('#leftPanel').width();
-
-            $('#maximizePanelContainer').show();
-            $('#leftPanel').hide();
-            $('.vsplitbar').hide();
-            $('#rightPanel').width($(window).width());
-            $(window).resize();
-            $('#outerContainer').trigger('resize');
-
-            $(document).trigger('sidebarCollapse');
-
-            if(MOBILE_DEVICE) {
-                $('#maximizePanelContainer').animate({
-                    top:$('#rightPanel').height() - $('#maximizePanelContainer').height()
-                }, 300, 'swing', function() {
-                    $('#maximizePanelContainer').css('top', 'inherit').css('bottom', '0px');
-                });
-            }
-        }
-
-        function expand() {
-            if(MOBILE_DEVICE) {
-                $('#maximizePanelContainer').css('top', '0px').css('bottom', 'inherit');
-            }
-
-            deleteVarFromCurrentUrlHash('c');
-            $('#maximizePanelContainer').hide();
-            $('#leftPanel').width(lastLeftPanelWidth);
-            $('#leftPanel').show();
-            if(!toolBarOnly) {
-                $('.vsplitbar').show();
-                $('#rightPanel').width($(window).width() - $('#leftPanel').width() - 1);
-            } else {
-                $axure.player.collapseToBar();
-            }
-            $(window).resize();
-            $('#outerContainer').trigger('resize');
-
-            $(document).trigger('sidebarExpanded');
-        }
-
-
-        function mainFrame_onload() {
-            if($axure.page.pageName) document.title = $axure.page.pageName;
-        }
-
-        function getQueryString(query) {
-            var qstring = self.location.href.split("?");
-            if(qstring.length < 2) return "";
-            return GetParameter(qstring, query);
-        }
-        
-        function GetParameter(qstring, query) {
-            var prms = qstring[1].split("&");
-            var frmelements = new Array();
-            var currprmeter, querystr = "";
-
-            for(var i = 0; i < prms.length; i++) {
-                currprmeter = prms[i].split("=");
-                frmelements[i] = new Array();
-                frmelements[i][0] = currprmeter[0];
-                frmelements[i][1] = currprmeter[1];
-            }
-
-            for(j = 0; j < frmelements.length; j++) {
-                if(frmelements[j][0].toLowerCase() == query.toLowerCase()) {
-                    querystr = frmelements[j][1];
-                    break;
-                }
-            }
-            return querystr;
-        }
-        
-        function getHashStringVar(query) {
-            var qstring = self.location.href.split("#");
-            if(qstring.length < 2) return "";
-            return GetParameter(qstring, query);
-        }
-
-        function setHashStringVar(currentHash, varName, varVal) {
-            var varWithEqual = varName + '=';
-            var poundVarWithEqual = varVal === '' ? '' :  '#' + varName + '=' + varVal;
-            var ampVarWithEqual = varVal === '' ? '' :  '&' + varName + '=' + varVal;
-            var hashToSet = '';
-
-            var pageIndex = currentHash.indexOf('#' + varWithEqual);
-            if(pageIndex == -1) pageIndex = currentHash.indexOf('&' + varWithEqual);
-            if(pageIndex != -1) {
-                var newHash = currentHash.substring(0, pageIndex);
-
-                newHash = newHash == '' ? poundVarWithEqual : newHash + ampVarWithEqual;
-
-                var ampIndex = currentHash.indexOf('&', pageIndex + 1);
-                if(ampIndex != -1) {
-                    newHash = newHash == '' ? '#' + currentHash.substring(ampIndex + 1) : newHash + currentHash.substring(ampIndex);
-                }
-                hashToSet = newHash;
-            } else if(currentHash.indexOf('#') != -1) {
-                hashToSet = currentHash + ampVarWithEqual;
-            } else {
-                hashToSet = poundVarWithEqual;
-            }
-
-            if(hashToSet != '' || varVal == '') {
-                return hashToSet;
-            }
-
-            return null;
-        }
-
-        function setVarInCurrentUrlHash(varName, varVal) {
-            var newHash = setHashStringVar(window.location.hash, varName, varVal);
-
-            if(newHash != null) {
-                replaceHash(newHash);
-            }
-        }
-
-        function deleteHashStringVar(currentHash, varName) {
-            var varWithEqual = varName + '=';
-
-            var pageIndex = currentHash.indexOf('#' + varWithEqual);
-            if(pageIndex == -1) pageIndex = currentHash.indexOf('&' + varWithEqual);
-            if(pageIndex != -1) {
-                var newHash = currentHash.substring(0, pageIndex);
-
-                var ampIndex = currentHash.indexOf('&', pageIndex + 1);
-
-                //IF begin of string....if none blank, ELSE # instead of & and rest
-                //IF in string....prefix + if none blank, ELSE &-rest
-                if(newHash == '') { //beginning of string
-                    newHash = ampIndex != -1 ? '#' + currentHash.substring(ampIndex + 1) : '';
-                } else { //somewhere in the middle
-                    newHash = newHash + (ampIndex != -1 ? currentHash.substring(ampIndex) : '');
-                }
-
-                return newHash;
-            }
-
-            return null;
-        }
-
-        function deleteVarFromCurrentUrlHash(varName) {
-            var newHash = deleteHashStringVar(window.location.hash, varName);
-
-            if(newHash != null) {
-                replaceHash(newHash);
-            }
-        }
-    --></script>
-
-    <link type="text/css" rel="Stylesheet" href="plugins/sitemap/styles/sitemap.css" />
-    <script type="text/javascript" src="plugins/sitemap/sitemap.js"></script>
-    <link type="text/css" rel="Stylesheet" href="plugins/page_notes/styles/page_notes.css" />
-    <script type="text/javascript" src="plugins/page_notes/page_notes.js"></script>
-    <!--<link type="text/css" rel="Stylesheet" href="plugins/recordplay/styles/recordplay.css" />
-    <script type="text/javascript" src="plugins/recordplay/recordplay.js"></script>-->
-    <link type="text/css" rel="Stylesheet" href="plugins/debug/styles/debug.css" />
-    <script type="text/javascript" src="plugins/debug/debug.js"></script>
-
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="http://c.csdnimg.cn/cdn/201502/js/jquery-1.11.2.min.js"></script>
+    <script src="http://csdnimg.cn/public/common/libs/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+    <link href="http://c.csdnimg.cn/cdn/201502/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://c.csdnimg.cn/cdn/201502/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://c.csdnimg.cn/public/common/toolbar/css2016/index.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/main.css"/>
+    <link rel="stylesheet" type="text/css" href="css/buy_ticket.css"/>
+   <script type="text/javascript" src="js/main.js" ></script>
+    <title>百度开放云上海站</title>
 </head>
-<body scroll="no" class="hashover">
-    <div id="outerContainer">
-
-        <div id="leftPanel">
-            <div id="interfaceControlFrame">
-                <div id="interfaceControlFrameMinimizeContainer">
-                    <a title="Collapse" id="interfaceControlFrameMinimizeButton" onclick="collapse();">&nbsp;</a>
-                </div>
-                <div id="interfaceControlFrameHeaderContainer">
-                    <ul id="interfaceControlFrameHeader"></ul>
-                </div>
-                <div id="interfaceControlFrameContainer">
-                    <div id="interfaceControlFrameLogoContainer">
-                        <div id="interfaceControlFrameLogoImageContainer"></div>
-                        <div id="interfaceControlFrameLogoCaptionContainer"></div>
+<body>
+<!-- bar -->
+<script id="toolbar-tpl-scriptId"  fixed="true" src="http://c.csdnimg.cn/public/common/toolbar/js/html2016.js" type="text/javascript"></script>
+<div class="baner">
+	<img src="images/banner.jpg" />	
+</div>
+<div class="baner_r">
+	<img src="images/640.jpg"/>
+</div>
+<!--标题开始-->
+<div class="head">
+<div class="container">
+	<div class="row">
+		<div class="col-md-12 col-xs-12 row">
+				<div class="title">											
+				<i class="fa fa-bars pull-right"></i>
+				<nav class="nav_r">
+					
+					<a class="cur" href="#A1">首页</a>
+					<a href="#A2">活动介绍</a>
+					<a href="#A3">活动日程</a>
+					<a href="#A4">演讲嘉宾</a>
+					<a href="#A5">活动报名</a>
+					<a href="#A6">现场回顾</a>
+					<a href="#A7">交通指南</a>
+					<a href="#A8">联系我们</a>
+				</nav>
+				</div>	
+			</div>
+		</div>
+	</div>
+</div>
+<div class="nav_ctn navbar">
+	<div class="container">
+        <div class="row">
+          	<ul class="col-xs-12 pdin">
+	            <li><a href="#">首页</a></li>
+	            <li><a href="#A2">活动介绍</a></li>
+	            <li><a href="#A3">活动日程 </a></li>
+	            <li><a href="#A4">演讲嘉宾</a></li>
+	            <li><a href="#A5">活动报名</a></li>
+	            <li><a href="#A6">现场回顾</a></li>
+	            <li><a href="#A6">交通指南</a></li>
+	            <li><a href="#A6">联系我们</a></li>
+          	</ul>
+		</div>
+	</div>
+</div>
+<script>
+$(document).ready(function(){
+	$(".fa-bars").click(function(){
+		$(".nav_ctn").toggle("normal");
+	})
+})
+//控制锚点和关闭下拉菜单
+</script>
+<!--标题结束-->
+<!--活动介绍开始-->
+<div class="container">
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10 col-sm-12">
+			<div class="warp_1">
+				<h3 class="tit_e">
+					<a href="#A1" id="A2">活动介绍</a>
+					<p></p>
+				</h3>
+				<div class="cont">
+					<p>从互联网诞生伊始，网络营销市场便随之诞生，2015年中国网络营销市场规模达到2123.4亿元，增速在100%以上，同时预计2016年中国DSP广告投放市场规模将达到219亿元。 其中，2014年中国视频程序化购买市场规模为6.02亿元，预计到2017年视频程序化购买市场规模将超过90亿元。</p>
+					<p>在这个庞大的市场上，目前发展呈现出如下趋势：垂直行业的程序化交易、非公开竞价的私有交易市场、视频程序化购买。这其中面临非常复杂的技术挑战，包括高并发，快响应，强适配等工程技术，同时在点击率预估模型，转化预估模型，DMP，特征工程，数据分析等大数据应用场景提出了新的要求。</p>
+					<p>对于国内各大媒体流量方或是广告需求方而言，如何快速搭建广告平台，通过大数据和云端技术对营销平台的工程和营销效果持续优化，提升用户体验、广告效果和媒体收入，建立原生营销生态，成为媒体平台和营销领域日益关注的重点。</p>
+				</div>
+				<div class=" col-md-12 mg_b">
+					<div class="col-md-6 mgb_l">
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						
+					</div>
+					<div class="col-md-6 mgb_l">
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						<p>
+							<img src="images/dian.jpg"/>
+							从互联网诞生伊始，网络营销市场便随之诞生，2015年中
+						</p>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!--活动介绍结束-->
+<!--活动日程开始-->
+<div class="bg_col">
+<div class="container">
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<div class="warp_1">
+				<h3 class="tit_e">
+					<a href="#A1" id="A3">活动日程</a>
+					<p></p>
+				</h3>	
+				
+<!--BT_nav 开始-->
+<div class="BT_nav BT_nav1">
+	<div class="BT_navCon schedule_nav">
+		<a href="javascript:"><span>北京站&nbsp;7月30号</span></a>
+		<a href="javascript:" class="BTN_cur"><span>上海站&nbsp;9月2号</span></a>
+    	<a href="javascript:"><span>深圳站&nbsp;9月9号</span></a>
+    	<a href="javascript:"><span>苏州站&nbsp;待定</span></a>
+    	<a href="javascript:"><span>武汉站&nbsp;待定</span></a>
+	</div>
+</div>
+<!--BT_nav 结束-->
+<div class="JB_con">	
+<!-- 第一页 开始 -->
+<div class="jiabin cur">
+<div class="container">			
+<div class="row">
+<div class="col-xs-12 conference_agenda richengap">
+<div class="CA_conBox">
+<div class="ta_list02 cheng02">
+<table>
+  <tbody>
+  <tr>
+   <td>13:00-14:00</td>
+   </tr>
+  <tr>
+   <td>签到</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:00-14:30</td>
+   </tr>
+  <tr>
+   <td>视频直播平台架构与核心技术实践</td>
+   </tr>
+  <tr>
+   <td>林孟祥&mdash;&mdash;百度开放云资深技术专家</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  	<tbody>
+	  <tr>
+	   <td>14:30-15:00</td>
+	  </tr>
+	  <tr>
+	   <td>全民TV直播技术分享</td>
+	  </tr>
+	  <tr>
+	   	<td>张云龙&mdash;&mdash;全民TV负责人</td>
+	  </tr>
+	</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+  </tr>
+  <tr>
+   <td>茶歇</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:40-16:20</td>
+   </tr>
+  <tr>
+   <td>云端技术对直播效果的优化</td>
+   </tr>
+  <tr>
+   <td>李永兴&mdash;&mdash;百度开放云资源研发工程师</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>集体合影与会后交流</td>   
+  </tr>
+ </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+	<!-- 第一 页结束 -->
+<!-- 第二页 开始 -->
+<div class="jiabin">
+<div class="container">			
+<div class="row">
+<div class="col-xs-12 conference_agenda richengap">
+<div class="CA_conBox">
+<div class="ta_list02  cheng02">
+<table>
+  <tbody>
+  <tr>
+   <td>13:00-14:00</td>
+   </tr>
+  <tr>
+   <td>签到</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:00-14:30</td>
+   </tr>
+  <tr>
+   <td>视频直播平台架构与核心技术实践</td>
+   </tr>
+  <tr>
+   <td>林孟祥&mdash;&mdash;百度开放云资深技术专家</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:30-15:00</td>
+   </tr>
+  <tr>
+   <td>全民TV直播技术分享</td>
+   </tr>
+  <tr>
+   <td>张云龙&mdash;&mdash;全民TV负责人</td>
+  </tr>
+  <tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>茶歇</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:40-16:20</td>
+   </tr>
+  <tr>
+   <td>云端技术对直播效果的优化</td>
+   </tr>
+  <tr>
+   <td>李永兴&mdash;&mdash;百度开放云资源研发工程师</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>集体合影与会后交流</td>   
+  </tr>
+ </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+	<!-- 第二页结束 -->
+<!-- 第三页 开始 -->
+<div class="jiabin">
+<div class="container">			
+<div class="row">
+<div class="col-xs-12 conference_agenda richengap">
+<div class="CA_conBox">
+<div class="ta_list02  cheng02">
+<table>
+  <tbody>
+  <tr>
+   <td>13:00-14:00</td>
+   </tr>
+  <tr>
+   <td>签到</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:00-14:30</td>
+   </tr>
+  <tr>
+   <td>视频直播平台架构与核心技术实践</td>
+   </tr>
+  <tr>
+   <td>林孟祥&mdash;&mdash;百度开放云资深技术专家</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:30-15:00</td>
+   </tr>
+  <tr>
+   <td>全民TV直播技术分享</td>
+   </tr>
+  <tr>
+   <td>张云龙&mdash;&mdash;全民TV负责人</td>
+  </tr>
+  <tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>茶歇</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:40-16:20</td>
+   </tr>
+  <tr>
+   <td>云端技术对直播效果的优化</td>
+   </tr>
+  <tr>
+   <td>李永兴&mdash;&mdash;百度开放云资源研发工程师</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>集体合影与会后交流</td>   
+  </tr>
+ </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+	<!-- 第三页结束 -->
+<!-- 第四页 开始 -->
+<div class="jiabin">
+<div class="container">			
+<div class="row">
+<div class="col-xs-12 conference_agenda richengap">
+<div class="CA_conBox">
+<div class="ta_list02  cheng02">
+<table>
+  <tbody>
+  <tr>
+   <td>13:00-14:00</td>
+   </tr>
+  <tr>
+   <td>签到</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:00-14:30</td>
+   </tr>
+  <tr>
+   <td>视频直播平台架构与核心技术实践</td>
+   </tr>
+  <tr>
+   <td>林孟祥&mdash;&mdash;百度开放云资深技术专家</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:30-15:00</td>
+   </tr>
+  <tr>
+   <td>全民TV直播技术分享</td>
+   </tr>
+  <tr>
+   <td>张云龙&mdash;&mdash;全民TV负责人</td>
+  </tr>
+  <tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>茶歇</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:40-16:20</td>
+   </tr>
+  <tr>
+   <td>云端技术对直播效果的优化</td>
+   </tr>
+  <tr>
+   <td>李永兴&mdash;&mdash;百度开放云资源研发工程师</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>集体合影与会后交流</td>   
+  </tr>
+ </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+	<!-- 第四页结束 -->
+<!-- 第五页 开始 -->
+<div class="jiabin">
+<div class="container">			
+<div class="row">
+<div class="col-xs-12 conference_agenda richengap">
+<div class="CA_conBox">
+<div class="ta_list02  cheng02">
+<table>
+  <tbody>
+  <tr>
+   <td>13:00-14:00</td>
+   </tr>
+  <tr>
+   <td>签到</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:00-14:30</td>
+   </tr>
+  <tr>
+   <td>视频直播平台架构与核心技术实践</td>
+   </tr>
+  <tr>
+   <td>林孟祥&mdash;&mdash;百度开放云资深技术专家</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>14:30-15:00</td>
+   </tr>
+  <tr>
+   <td>全民TV直播技术分享</td>
+   </tr>
+  <tr>
+   <td>张云龙&mdash;&mdash;全民TV负责人</td>
+  </tr>
+  <tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>茶歇</td>   
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:40-16:20</td>
+   </tr>
+  <tr>
+   <td>云端技术对直播效果的优化</td>
+   </tr>
+  <tr>
+   <td>李永兴&mdash;&mdash;百度开放云资源研发工程师</td>
+  </tr>
+</tbody>
+</table>
+<table>
+  <tbody>
+  <tr>
+   <td>15:30-15:40</td>
+   </tr>
+  <tr>
+   <td>集体合影与会后交流</td>   
+  </tr>
+ </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+	<!-- 第五页结束 -->
+</div>
+				<ul class="dsj_x liuc_nav gaishu_nav clearfix">
+					<li class="tabfirst">
+						<a href="javascript:void(0);" class="nav_title">北京站  7月30号</a>
+						
+					</li>
+					<li class="current">
+						<a href="javascript:void(0);" class="nav_title">上海站  9月2号</a>
+						
+					</li>
+					<li>
+						<a href="javascript:void(0);" class="nav_title">深圳站  9月9号</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);" class="nav_title">苏州站  待定</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);" class="nav_title">武汉站  待定</a>
+					</li>					
+				</ul>
+				<div class="liuccon gaishucon">
+					<table class="shju lccond">
+						<tr class="shi_j">
+							<td>时间1</td>
+							<td>演讲主题</td>
+							<td>演讲嘉宾</td>
+							<td>主题介绍</td>
+						</tr>
+						<tr class="zhu_t">
+							<td>13:30-14:00</td>
+							<td>签到</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:00-14:30</td>
+							<td>视频直播平台架构与核心技术实践</td>
+							<td><span>林孟祥</span> 百度开放云资深技术专家</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:30-15:00</td>
+							<td>全民TV直播实践技术分享</td>
+							<td><span>张云龙</span> 全民TV技术负责人</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:00-15:30</td>
+							<td>得到App直播实践</td>
+							<td><span>马优生</span> 逻辑思维直播项目负责人</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>茶歇</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:40-16:20</td>
+							<td>云端技术对直播效果的优化</td>
+							<td><span>李永兴</span> 百度开放云资深研发工程师</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>集体合影与会后交流</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+					<table class="shju lccond">
+						<tr class="shi_j">
+							<td>时间2</td>
+							<td>演讲主题</td>
+							<td>演讲嘉宾</td>
+							<td>主题介绍</td>
+						</tr>
+						<tr class="zhu_t">
+							<td>13:30-14:00</td>
+							<td>签到</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:00-14:30</td>
+							<td>视频直播平台架构与核心技术实践</td>
+							<td><span>林孟祥</span> 百度开放云资深技术专家</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:30-15:00</td>
+							<td>全民TV直播实践技术分享</td>
+							<td><span>张云龙</span> 全民TV技术负责人</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:00-15:30</td>
+							<td>得到App直播实践</td>
+							<td><span>马优生</span> 逻辑思维直播项目负责人</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>茶歇</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:40-16:20</td>
+							<td>云端技术对直播效果的优化</td>
+							<td><span>李永兴</span> 百度开放云资深研发工程师</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>集体合影与会后交流</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+					<table class="shju lccond">
+						<tr class="shi_j">
+							<td>时间3</td>
+							<td>演讲主题</td>
+							<td>演讲嘉宾</td>
+							<td>主题介绍</td>
+						</tr>
+						<tr class="zhu_t">
+							<td>13:30-14:00</td>
+							<td>签到</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:00-14:30</td>
+							<td>视频直播平台架构与核心技术实践</td>
+							<td><span>林孟祥</span> 百度开放云资深技术专家</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:30-15:00</td>
+							<td>全民TV直播实践技术分享</td>
+							<td><span>张云龙</span> 全民TV技术负责人</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:00-15:30</td>
+							<td>得到App直播实践</td>
+							<td><span>马优生</span> 逻辑思维直播项目负责人</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>茶歇</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:40-16:20</td>
+							<td>云端技术对直播效果的优化</td>
+							<td><span>李永兴</span> 百度开放云资深研发工程师</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>集体合影与会后交流</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+					<table class="shju lccond">
+						<tr class="shi_j">
+							<td>时间4</td>
+							<td>演讲主题</td>
+							<td>演讲嘉宾</td>
+							<td>主题介绍</td>
+						</tr>
+						<tr class="zhu_t">
+							<td>13:30-14:00</td>
+							<td>签到</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:00-14:30</td>
+							<td>视频直播平台架构与核心技术实践</td>
+							<td><span>林孟祥</span> 百度开放云资深技术专家</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:30-15:00</td>
+							<td>全民TV直播实践技术分享</td>
+							<td><span>张云龙</span> 全民TV技术负责人</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:00-15:30</td>
+							<td>得到App直播实践</td>
+							<td><span>马优生</span> 逻辑思维直播项目负责人</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>茶歇</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:40-16:20</td>
+							<td>云端技术对直播效果的优化</td>
+							<td><span>李永兴</span> 百度开放云资深研发工程师</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>集体合影与会后交流</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+					<table class="shju lccond">
+						<tr class="shi_j">
+							<td>时间5</td>
+							<td>演讲主题</td>
+							<td>演讲嘉宾</td>
+							<td>主题介绍</td>
+						</tr>
+						<tr class="zhu_t">
+							<td>13:30-14:00</td>
+							<td>签到</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:00-14:30</td>
+							<td>视频直播平台架构与核心技术实践</td>
+							<td><span>林孟祥</span> 百度开放云资深技术专家</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>14:30-15:00</td>
+							<td>全民TV直播实践技术分享</td>
+							<td><span>张云龙</span> 全民TV技术负责人</td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:00-15:30</td>
+							<td>得到App直播实践</td>
+							<td><span>马优生</span> 逻辑思维直播项目负责人</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>茶歇</td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>15:40-16:20</td>
+							<td>云端技术对直播效果的优化</td>
+							<td><span>李永兴</span> 百度开放云资深研发工程师</td>
+							<td></td>
+						</tr>
+						<tr class="zhu_t">
+							<td>15:30-15:40</td>
+							<td>集体合影与会后交流</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+				</div>							
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+<!--活动日程结束-->
+<!--演讲嘉宾开始-->
+<div class="container">
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<div class="warp_1 clearfix mjb">
+				<h3 class="tit_e">
+					<a href="#A2" id="A4">演讲嘉宾</a>
+					<p></p>
+				</h3>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+				<div class="col-md-3 col-sm-4 col-xs-6 jia_b">
+					<img src="images/ren_t.png"/>
+					<div>李永兴</div>
+					<p>百度开放云资深研发工程师</p>
+					<p class="dizh">
+						<img src="images/di_z.jpg"/>
+						上海站
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!--演讲嘉宾结束-->
+<!--活动报名开始-->
+<div class="bg_col">
+<div class="container">
+	<div class="row">
+		<div class="col-md-12 col-sm-12">
+			<div class="warp_1 clearfix">
+				<h3 class="tit_e">
+					<a href="#A1" id="A5">活动报名</a>
+					<p></p>
+				</h3>
+				<div class="bao_m col-sm-12">
+					<img src="images/beij_z.jpg"/>
+					<div>北京站</div>
+					<p>7月30日</p>
+					<a href="#">观看现场视频</a>
+				</div>
+				<div class="bao_m bia">
+					<img src="images/shangh_z.jpg"/>
+					<div>上海站</div>
+					<p>9月2日</p>
+					<a href="#" class="lij">立即报名</a>
+				</div>
+				<div class="bao_m">
+					<img src="images/shen_z.jpg"/>
+					<div>深圳站</div>
+					<p>9月9日</p>
+					<a href="#" class="lij">立即报名</a>
+				</div>
+				<div class="bao_m">
+					<img src="images/shu_z.jpg"/>
+					<div>苏州站</div>
+					<p>待定</p>
+					<a href="#">即将开启</a>
+				</div>
+				<div class="bao_m">
+					<img src="images/wu_h.jpg"/>
+					<div>武汉站</div>
+					<p>待定</p>
+					<a href="#">即将开启</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+<!--活动报名结束-->
+<!--现场回顾开始-->
+<div class="previous_review">
+            <div class="warp_1 gin_t">
+				<h3 class="tit_e">
+					<a href="#A1" id="A6">现场回顾</a>
+					<p></p>
+				</h3>
+			</div>
+			<div id="myCarousel" class="carousel slide" data-ride="carousel">
+      <!-- Indicators -->     
+				      <div class="carousel-inner" role="listbox">
+				        <div class="item active">
+				          <img src="images/hui_big.jpg"/>				            
+				        </div>
+				        <div class="item">
+				          <img src="images/hui_big.jpg"/>				            
+				        </div>
+				        <div class="item">
+				          <img src="images/hui_big.jpg"/>				          				            				              				            
+				        </div>
+				        <div class="item">
+				          <img src="images/hui_big.jpg"/>				          				            				              				            
+				        </div>
+				        <div class="item">
+				          <img src="images/hui_big.jpg"/>				          				            				              				            
+				        </div>
+				        <div class="item">
+				          <img src="images/hui_big.jpg"/>				          				            				              				            
+				        </div>
+				      </div>
+				      <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+				        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+				        <span class="sr-only">Previous</span>
+				      </a>
+				      <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+				        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+				        <span class="sr-only">Next</span>
+				      </a>
+				    </div>
+		    	<!-- lunbo end -->
+            <div class="PR_con">
+                <ul class="PR_show">
+                    <li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="1">
+                    </li>
+                  	<li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="">
+                    </li>
+                    <li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="">
+                    </li>
+                    <li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="">
+                    </li>
+                    <li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="">
+                    </li>
+                    <li class="PR_show_cur">
+                        <img src="images/hui_big.jpg" alt="">
+                    </li>
+                </ul>
+                <div class="left"></div>
+                <div class="right"></div>
+                <div class="PR_iconBox">
+                    <div class="row">
+                        <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_big.jpg" alt="1">
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_smlo.jpg" alt="">
+                            </div>
+                        </div>
+                                            <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">
+                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_smlo.jpg" alt="">
+                            </div>
+                        </div>
+                                            <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">
+                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_smlo.jpg" alt="">
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">
+                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_smlo.jpg" alt="">
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-3 col-xs-3">
+                            <div class="PR_icon PR_icon_cur">
+                                
+                                <span aria-hidden="true" class="glyphicon glyphicon-triangle-top">
+                                </span>
+                                <img src="images/hui_smlo.jpg" alt="">
+                            </div>
+                        </div>
                     </div>
-                    <div id="interfaceControlFrameHostContainer">
-                    </div>
-                </div>
-                <div id="interfaceControlFrameCloseContainer">
-                    <a title="Close" id="interfaceControlFrameCloseButton" onclick="closePlayer();">CLOSE</a>
-                </div>
+                </div>                
             </div>
         </div>
-        <div id="rightPanel">
-            <iframe id="mainFrame" name="mainFrame" width="100%" height="100%" src="" frameborder="0" style="display: block;" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-        </div>
-
+ 
+<!--现场回顾结束-->
+<!--交通指南开始-->
+<div class="container">
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<div class="warp_1">
+				<h3 class="tit_e">
+					<a href="#A1" id="A7">交通指南</a>
+					<p></p>
+				</h3>
+				<div class="col-md-12 jiao_1">
+					<div class="col-md-7 zuo">
+						<img src="images/di_t.jpg"/>
+					</div>
+					<div class="col-md-5 shang_h ">
+						<div class="bian_k"></div>
+						<p>上海 · 香格里拉大酒店</p>
+						<div class="di_dian clearfix">
+							<img src="images/dit_1.jpg" class="fl"/>
+							<div class="fl you">
+								<div class="yans">国家会议中心</div>
+								<div>北京市朝阳区天辰东路7号</div>
+							</div>							
+						</div>
+						<div class="di_dian clearfix">
+							<img src="images/dit_2.jpg" class="fl"/>							
+							<div class="fl you">
+								<div class="yans">乘车路线</div>
+								<div>公交：1  202 306 965</div>
+								<div>地铁：近地铁8号线奥林匹克公园站</div>
+							</div>							
+						</div>
+						<div class="di_dian clearfix">
+							<img src="images/dit_3.jpg" class="fl"/>							
+							
+							<div class="fl you">
+								<div class="yans">驾车路线</div>
+								<div>北四环中路</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-12 jiao_1 mjb">
+					<div class="col-md-7 zuo">
+						<img src="images/di_t.jpg"/>
+					</div>
+					<div class="col-md-5 shang_h ">
+						<div class="bian_k"></div>
+						<p>深圳 · 某某花园酒店</p>
+						<div class="di_dian clearfix">
+							<img src="images/dit_1.jpg" class="fl"/>
+							<div class="fl you">
+								<div class="yans">国家会议中心</div>
+								<div>北京市朝阳区天辰东路7号</div>
+							</div>							
+						</div>
+						<div class="di_dian clearfix">
+							<img src="images/dit_2.jpg" class="fl"/>							
+							<div class="fl you">
+								<div class="yans">乘车路线</div>
+								<div>公交：1  202 306 965</div>
+								<div>地铁：近地铁8号线奥林匹克公园站</div>
+							</div>							
+						</div>
+						<div class="di_dian clearfix">
+							<img src="images/dit_3.jpg" class="fl"/>							
+							
+							<div class="fl you">
+								<div class="yans">驾车路线</div>
+								<div>北四环中路</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+        </div>                
     </div>
-
-    <div id="maximizePanelContainer">
-        <iframe id="expandFrame" src="resources/expand.html" width="100%" height="100%" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+</div>
+<!--交通指南结束-->
+<!--二维码开始-->
+<div class="erm_bj" id="A8">	
+<div class="container">
+	<div class="row">
+		<div class="col-md-offset-2 col-md-8 col-lg-9">
+			<div class="clearfix mar">
+				<img src="images/erwm.png"/ class="fl">
+				<div class="fr mgt">
+					<p>
+						<img src="images/lian_r.png"/>
+						<span>联系人：董泽园</span>
+					</p>
+					<p>
+						<img src="images/xin_x.png"/>
+						<span>联系电话：010-51661202-855</span>
+					</p>
+					<p>
+						<img src="images/xin_x.png"/>
+						<span>邮箱：dongzy@csdn.net</span>
+					</p>
+				</div>
+			</div>
+			
+		</div>                
     </div>
+</div>
+</div>
+<!--二维码结束-->
+<!--返回顶部 开始-->
+<div class="back_top">
+	<a href="#gotop"><img src="images/ding_1.jpg" alt="" /></a>
+</div>
+<!--返回顶部 结束-->
+<script>
+    (function($){
 
+        function bluemix(){
+
+            var curIndex = $('.liuc_nav').find('.current').index();
+            $(".lccond").eq(curIndex).show().siblings().hide();
+	     }
+        $(document).ready(function(){
+            bluemix();
+        })
+
+        $('.liuc_nav li a').click(function(){
+            $(this).parent().addClass('current').siblings().removeClass('current');
+            bluemix();
+        })
+        $('.liuc_nav li a').hover(function(){
+            $(this).parent().addClass('current').siblings().removeClass('current');
+            bluemix();
+        })
+		
+
+    })(jQuery)
+</script>
+<script>
+        $(function(){
+   			/* 现场回顾 */
+    		PRIcon();   		
+		})
+        
+ </script>
+ <script>(function($){
+	function sdcc(){
+        var curIndex = $('.BT_navCon').find('.BTN_cur').index();
+        $(".jiabin").eq(curIndex).show().siblings().hide();
+    }
+    $(document).ready(function(){
+        sdcc();
+    })
+    $('.BT_navCon a').click(function(){
+        $(this).addClass('BTN_cur').siblings().removeClass('BTN_cur');
+        sdcc();
+    })
+    
+})(jQuery);</script>
+<script>
+$(document).ready(function(){  
+  $('.nav_ctn li').bind('click',function(){
+   $('.nav_ctn').hide();
+  });
+});
+</script>
+<script>
+$(function(){
+	/*滚动触发导航悬浮事件*/
+	$(document).scroll(function(){
+    	var scroll_t = parseInt($(document).scrollTop());
+        if(scroll_t>84){
+            $(".head").addClass('headBg');
+            $(".navbar").addClass('navbarBg');
+        }else{
+            $(".head").removeClass('headBg');
+            $(".navbar").removeClass('navbarBg');
+        };
+    });
+    /*返回顶部*/
+    scrolltopBar(); 
+})
+</script>
+ <!-- foot-->
+<div id="csdn_pub_footer ">
+    <script src="http://csdnimg.cn/pubfooter/js/publib_footer.js"></script>
+</div>
+<script type= "text/javascript" src="http://c.csdnimg.cn/public/common/toolbar/js/toolbar.js" ></script>
+<script type="text/javascript" src="js/package.js"></script>
 </body>
 </html>
